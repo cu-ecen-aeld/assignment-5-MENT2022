@@ -1,0 +1,33 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+    echo "Loading kernel modules..."
+    # Load scull module
+    /sbin/insmod /lib/modules/$(uname -r)/scull.ko
+    mknod /dev/scull0 c $(awk '$2=="scull" {print $1}' /proc/devices) 0
+    mknod /dev/scull1 c $(awk '$2=="scull" {print $1}' /proc/devices) 1
+    mknod /dev/scull2 c $(awk '$2=="scull" {print $1}' /proc/devices) 2
+    mknod /dev/scull3 c $(awk '$2=="scull" {print $1}' /proc/devices) 3
+    
+    # Load faulty module
+    /sbin/insmod /lib/modules/$(uname -r)/faulty.ko
+    mknod /dev/faulty c $(awk '$2=="faulty" {print $1}' /proc/devices) 0
+    
+    # Load hello module
+    /sbin/insmod /lib/modules/$(uname -r)/hello.ko
+    ;;
+  stop)
+    echo "Unloading kernel modules..."
+    # Unload modules in reverse order
+    /sbin/rmmod hello
+    /sbin/rmmod faulty
+    /sbin/rmmod scull
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
